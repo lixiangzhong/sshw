@@ -93,7 +93,14 @@ func genSSHConfig(node *Node) *defaultClient {
 			l.Error(err)
 		}
 	} else {
-		pemBytes, err = ioutil.ReadFile(node.KeyPath)
+		keypath := node.KeyPath
+		if node.KeyPath[0] == '~' {
+			homedir, err := os.UserHomeDir()
+			if err == nil {
+				keypath = strings.Replace(keypath, "~", homedir, 1)
+			}
+		}
+		pemBytes, err = ioutil.ReadFile(keypath)
 		if err != nil {
 			l.Error(err)
 		}
@@ -171,7 +178,6 @@ func (c *defaultClient) Login() {
 					if p != "" {
 						c.clientConfig.Auth = append(c.clientConfig.Auth, ssh.Password(p))
 					}
-					fmt.Println()
 					client, err = ssh.Dial("tcp", net.JoinHostPort(host, port), c.clientConfig)
 				}
 			}
